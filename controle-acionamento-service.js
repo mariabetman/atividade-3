@@ -45,7 +45,7 @@ async function atualizarEstadoAlarme(id) {
 // Função helper para enviar notificação via proxy
 async function enviarNotificacao(data) {
     try {
-        await axios.post(NOTIFICACAO_SERVICE_URL, {
+        await axios.post(`${NOTIFICACAO_SERVICE_URL}/notificacoes;`, {
             idUsuario,
             mensagem
         });
@@ -57,7 +57,7 @@ async function enviarNotificacao(data) {
 // Função para registrar evento no serviço de log
 async function registrarLog(idAlarme, idUsuario, evento) {
     try {
-        await axios.post(`${LOGGING_SERVICE_URL}/;`, {
+        await axios.post(`${LOGGING_SERVICE_URL}/logs;`, {
             idAlarme,
             idUsuario,
             evento,
