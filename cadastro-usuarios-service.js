@@ -29,7 +29,7 @@ var db = new sqlite3.Database('./dados-usuarios.db', (err) => {
 db.run(`CREATE TABLE IF NOT EXISTS usuarios (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     nome TEXT NOT NULL,
-    email TEXT NOT NULL,
+    email TEXT NOT NULL UNIQUE,
     cpf INTEGER NOT NULL UNIQUE,
     numero BIGINT(14) NOT NULL UNIQUE
     )`, [], (err) => {

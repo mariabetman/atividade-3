@@ -15,7 +15,7 @@ app.listen(porta, () => {
 
 // Importa o package do SQLite
 const sqlite3 = require('sqlite3');
-const db = new sqlite3.Database('./database.db');
+const db = new sqlite3.Database('./dados-alarmes.db');
 
 // Cria a tabela alarmes, caso ela não exista
 db.run(`CREATE TABLE IF NOT EXISTS alarmes (
@@ -42,9 +42,10 @@ app.post('/alarmes', (req, res) => {
 
     const pontosJSON = JSON.stringify(pontos_monitorados || []);
     const usuariosJSON = JSON.stringify(usuarios_permitidos || []);
+    const acionadoFinal = acionado !== undefined ? acionado : false;
 
     db.run(`INSERT INTO alarmes (local_instalacao, pontos_monitorados, usuarios_permitidos, acionado) VALUES (?, ?, ?, ?)`,
-        [local_instalacao, pontosJSON, usuariosJSON, acionado], (err) => { 
+        [local_instalacao, pontosJSON, usuariosJSON, acionadoFinal], (err) => { 
         if (err) {
             console.log("Error: " + err);
             res.status(500).send('Erro ao cadastrar alarme.');
@@ -57,9 +58,9 @@ app.post('/alarmes', (req, res) => {
 
 // Método HTTP PATCH /alarmes/:id/pontos/adiciona - adiciona pontos monitorados
 app.patch('/alarmes/:id/pontos/adiciona', (req, res) => {
-    const { pontos } = req.body;
+    const { pontos_monitorados } = req.body;
 
-    if (!Array.isArray(pontos)) {
+    if (!Array.isArray(pontos_monitorados)) {
         return res.status(400).json({ error: 'Formato inválido. Esperado um array de pontos.' });
     }
 
@@ -75,7 +76,7 @@ app.patch('/alarmes/:id/pontos/adiciona', (req, res) => {
             const idRepetido = (novo) =>
                 pontosAtuais.some(p => p.id === novo.id);
 
-            const novosPontos = pontos.filter(p => !idRepetido(p));
+            const novosPontos = pontos_monitorados.filter(p => !idRepetido(p));
 
             if (novosPontos.length === 0) {
                 return res.status(200).json({ message: 'Nenhum ponto novo foi adicionado.' });
@@ -101,13 +102,13 @@ app.patch('/alarmes/:id/pontos/adiciona', (req, res) => {
 
 // Método HTTP PATCH /alarmes/:id/pontos/remove - remove pontos monitorados pelo
 app.patch('/alarmes/:id/pontos/remove', (req, res) => {
-    const { pontos } = req.body;
+    const { pontos_monitorados } = req.body;
 
-    if (!Array.isArray(pontos)) {
+    if (!Array.isArray(pontos_monitorados)) {
         return res.status(400).json({ error: 'Formato inválido. Esperado um array de pontos.' });
     }
 
-    const idsParaRemover = pontos.map(p => p.id);
+    const idsParaRemover = pontos_monitorados.map(p => p.id);
 
     db.get(`SELECT pontos_monitorados FROM alarmes WHERE id = ?`, [req.params.id], (err, row) => {
         if (err) {
@@ -233,7 +234,7 @@ app.patch('/alarmes/:id/acionado', (req, res) => {
         } else if (!row) {
             res.status(404).send('Alarme não encontrado.');
         } else {
-            db.run(`UPDATE alarmes SET acionado = ? WHERE id = ?`, !row.acionado, function (err) {
+            db.run(`UPDATE alarmes SET acionado = ? WHERE id = ?`, [!row.acionado, req.params.id], function (err) {
             if (err) {
                 console.log('Erro: ' + err);
                 res.status(500).send('Erro ao atualizar alarme.');
