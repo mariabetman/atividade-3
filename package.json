@@ -16,5 +16,8 @@
     "express-http-proxy": "^2.1.1",
     "morgan": "^1.10.0",
     "sqlite3": "^5.1.7"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
   }
 }
