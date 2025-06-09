@@ -7,12 +7,12 @@ const app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-let porta = 8086;
+let porta = 8084;
 app.listen(porta, () => {
     console.log('Servidor de controle de disparo em execução na porta: ' + porta);
 });
 
-const LOGGING_SERVICE_URL = 'http://localhost:8084/logs';
+const LOGGING_SERVICE_URL = 'http://localhost:8086/logs';
 const NOTIFICACAO_SERVICE_URL = 'http://localhost:8085/notificacoes';
 
 // POST /disparo - simula o disparo do alarme

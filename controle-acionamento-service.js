@@ -16,8 +16,8 @@ app.listen(porta, () => {
 });
 
 const CADASTRO_ALARMES_SERVICE_URL = 'http://localhost:8082';
-const LOGGING_SERVICE_URL = 'http://localhost:8084/logs';
-const NOTIFICACAO_SERVICE_URL = 'http://localhost:8085/notificacoes';
+const LOGGING_SERVICE_URL = 'http://localhost:8086';
+const NOTIFICACAO_SERVICE_URL = 'http://localhost:8085';
 
 // Função helper para obter o alarme via proxy
 async function getAlarme(id) {
@@ -45,9 +45,9 @@ async function atualizarEstadoAlarme(id) {
 }
 
 // Função helper para enviar notificação via proxy
-async function enviarNotificacao(data) {
+async function enviarNotificacao(idUsuario, mensagem) {
     try {
-        await axios.post(`${NOTIFICACAO_SERVICE_URL}/notificacoes;`, {
+        await axios.post(`${NOTIFICACAO_SERVICE_URL}/notificacoes`, {
             idUsuario,
             mensagem
         });
@@ -59,7 +59,7 @@ async function enviarNotificacao(data) {
 // Função para registrar evento no serviço de log
 async function registrarLog(idAlarme, idUsuario, evento) {
     try {
-        await axios.post(`${LOGGING_SERVICE_URL}/logs;`, {
+        await axios.post(`${LOGGING_SERVICE_URL}/logs`, {
             idAlarme,
             idUsuario,
             evento,

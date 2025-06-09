@@ -8,7 +8,7 @@ const app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-let porta = 8084;
+let porta = 8086;
 app.listen(porta, () => {
     console.log('Serviço de logging em execução na porta: ' + porta);
 });
