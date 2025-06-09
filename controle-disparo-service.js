@@ -17,13 +17,13 @@ const NOTIFICACAO_SERVICE_URL = 'http://localhost:8085/notificacoes';
 const ALARMES_SERVICE_URL = 'http://localhost:8082/alarmes';
 const USUARIOS_SERVICE_URL = 'http://localhost:8081/usuarios';
 
-// Função para verificar se o alarme existe
-const alarmeExiste = async (idAlarme) => {
+// Função para obter o alarme completo (não só verificar existência)
+const obterAlarme = async (idAlarme) => {
     try {
         const res = await axios.get(`${ALARMES_SERVICE_URL}/${idAlarme}`);
-        return !!res.data;
+        return res.data;
     } catch (err) {
-        return false;
+        return null;
     }
 };
 
@@ -45,27 +45,41 @@ app.post('/disparo', async (req, res) => {
         return res.status(400).json({ error: 'Parâmetros obrigatórios: idAlarme, ponto.' });
     }
 
-    // Verificacoes
-    const alarmeOk = await alarmeExiste(idAlarme);
-    if (!alarmeOk) return res.status(404).json({ error: 'Alarme não encontrado.' });
+    // Obter o alarme completo para verificar pontos_monitorados
+    const alarme = await obterAlarme(idAlarme);
+    if (!alarme) return res.status(404).json({ error: 'Alarme não encontrado.' });
 
+    // Verificar se o ponto existe dentro do alarme
+    let pontosMonitorados = [];
+    try {
+        // O campo pontos_monitorados é uma string JSON dentro do objeto alarme, parsear para array
+        pontosMonitorados = JSON.parse(alarme.pontos_monitorados);
+    } catch (err) {
+        return res.status(500).json({ error: 'Erro ao processar pontos monitorados do alarme.' });
+    }
+
+    // Encontrar o ponto correspondente
+    const pontoObj = pontosMonitorados.find(p => p.id === ponto || p.id === Number(ponto));
+    if (!pontoObj) return res.status(404).json({ error: 'Ponto não encontrado no alarme.' });
+
+    // Verificar usuário, se fornecido
     if (idUsuario) {
         const usuarioOk = await usuarioExiste(idUsuario);
         if (!usuarioOk) return res.status(404).json({ error: 'Usuário não encontrado.' });
     }
 
     try {
-        // Envia notificação
+        // Envia notificação com nome do ponto
         await axios.post(`${NOTIFICACAO_SERVICE_URL}`, {
             idUsuario,
-            mensagem: `DISPARO DETECTADO! Alarme ${idAlarme} - Ponto: ${ponto}`
+            mensagem: `DISPARO DETECTADO! Alarme ${idAlarme} - Ponto: ${pontoObj.nome}`
         });
 
-        // Registra o evento no log
+        // Registra o evento no log, também com nome do ponto
         await axios.post(`${LOGGING_SERVICE_URL}`, {
             idAlarme,
             idUsuario: idUsuario || null,
-            evento: `Disparo no ponto ${ponto}`,
+            evento: `Disparo no ponto ${pontoObj.nome}`,
             timestamp: new Date().toISOString()
         });
 
