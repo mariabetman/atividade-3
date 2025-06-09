@@ -34,7 +34,7 @@ app.post('/notificacoes', async (req, res) => {
         }
     }
 
-    console.log(`[NOTIFICAÇÃO] ${mensagem}` + (idUsuario ? ` (Usuário: ${idUsuario})` : ''));
+    console.log(`[NOTIFICAÇÃO] ${mensagem}`);
 
     res.status(200).json({ status: 'Notificação enviada com sucesso (simulada).' });
 });

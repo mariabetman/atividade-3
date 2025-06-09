@@ -17,7 +17,7 @@ const NOTIFICACAO_SERVICE_URL = 'http://localhost:8085/notificacoes';
 const ALARMES_SERVICE_URL = 'http://localhost:8082/alarmes';
 const USUARIOS_SERVICE_URL = 'http://localhost:8081/usuarios';
 
-// Função para obter o alarme completo (não só verificar existência)
+// Obter alarme completo
 const obterAlarme = async (idAlarme) => {
     try {
         const res = await axios.get(`${ALARMES_SERVICE_URL}/${idAlarme}`);
@@ -27,7 +27,7 @@ const obterAlarme = async (idAlarme) => {
     }
 };
 
-// Função para verificar se o usuário existe
+// Verificar se o usuário existe
 const usuarioExiste = async (idUsuario) => {
     try {
         const res = await axios.get(`${USUARIOS_SERVICE_URL}/${idUsuario}`);
@@ -45,7 +45,7 @@ app.post('/disparo', async (req, res) => {
         return res.status(400).json({ error: 'Parâmetros obrigatórios: idAlarme, ponto.' });
     }
 
-    // Obter o alarme completo para verificar pontos_monitorados
+    // Verificar pontos_monitorados do alarme
     const alarme = await obterAlarme(idAlarme);
     if (!alarme) return res.status(404).json({ error: 'Alarme não encontrado.' });
 
@@ -62,7 +62,7 @@ app.post('/disparo', async (req, res) => {
     const pontoObj = pontosMonitorados.find(p => p.id === ponto || p.id === Number(ponto));
     if (!pontoObj) return res.status(404).json({ error: 'Ponto não encontrado no alarme.' });
 
-    // Verificar usuário, se fornecido
+    // Verificar usuário
     if (idUsuario) {
         const usuarioOk = await usuarioExiste(idUsuario);
         if (!usuarioOk) return res.status(404).json({ error: 'Usuário não encontrado.' });
@@ -72,7 +72,7 @@ app.post('/disparo', async (req, res) => {
         // Envia notificação com nome do ponto
         await axios.post(`${NOTIFICACAO_SERVICE_URL}`, {
             idUsuario,
-            mensagem: `DISPARO DETECTADO! Alarme ${idAlarme} - Ponto: ${pontoObj.nome}`
+            mensagem: `DISPARO DETECTADO! Ponto: ${pontoObj.nome}`
         });
 
         // Registra o evento no log, também com nome do ponto

@@ -50,7 +50,7 @@ app.post('/logs', async (req, res) => {
             return res.status(404).json({ error: 'Alarme não encontrado.' });
         }
 
-        // Verifica se o usuário existe, se informado
+        // Verifica se o usuário existe
         if (idUsuario) {
             const usuarioRes = await axios.get(`${USUARIOS_SERVICE_URL}/${idUsuario}`).catch(() => null);
             if (!usuarioRes || !usuarioRes.data) {
