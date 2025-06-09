@@ -14,6 +14,28 @@ app.listen(porta, () => {
 
 const LOGGING_SERVICE_URL = 'http://localhost:8086/logs';
 const NOTIFICACAO_SERVICE_URL = 'http://localhost:8085/notificacoes';
+const ALARMES_SERVICE_URL = 'http://localhost:8082/alarmes';
+const USUARIOS_SERVICE_URL = 'http://localhost:8081/usuarios';
+
+// Função para verificar se o alarme existe
+const alarmeExiste = async (idAlarme) => {
+    try {
+        const res = await axios.get(`${ALARMES_SERVICE_URL}/${idAlarme}`);
+        return !!res.data;
+    } catch (err) {
+        return false;
+    }
+};
+
+// Função para verificar se o usuário existe
+const usuarioExiste = async (idUsuario) => {
+    try {
+        const res = await axios.get(`${USUARIOS_SERVICE_URL}/${idUsuario}`);
+        return !!res.data;
+    } catch (err) {
+        return false;
+    }
+};
 
 // POST /disparo - simula o disparo do alarme
 app.post('/disparo', async (req, res) => {
@@ -21,6 +43,15 @@ app.post('/disparo', async (req, res) => {
 
     if (!idAlarme || !ponto) {
         return res.status(400).json({ error: 'Parâmetros obrigatórios: idAlarme, ponto.' });
+    }
+
+    // Verificacoes
+    const alarmeOk = await alarmeExiste(idAlarme);
+    if (!alarmeOk) return res.status(404).json({ error: 'Alarme não encontrado.' });
+
+    if (idUsuario) {
+        const usuarioOk = await usuarioExiste(idUsuario);
+        if (!usuarioOk) return res.status(404).json({ error: 'Usuário não encontrado.' });
     }
 
     try {
