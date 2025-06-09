@@ -100,15 +100,15 @@ app.patch('/alarmes/:id/pontos/adiciona', (req, res) => {
     });
 });
 
-// Método HTTP PATCH /alarmes/:id/pontos/remove - remove pontos monitorados pelo
+// Método HTTP PATCH /alarmes/:id/pontos/remove - remove pontos monitorados
 app.patch('/alarmes/:id/pontos/remove', (req, res) => {
-    const { pontos_monitorados } = req.body;
+    const { idPontos } = req.body;
 
-    if (!Array.isArray(pontos_monitorados)) {
+    if (!Array.isArray(idPontos)) {
         return res.status(400).json({ error: 'Formato inválido. Esperado um array de pontos.' });
     }
 
-    const idsParaRemover = pontos_monitorados.map(p => p.id);
+    const idsParaRemover = idPontos.map(p => p.id);
 
     db.get(`SELECT pontos_monitorados FROM alarmes WHERE id = ?`, [req.params.id], (err, row) => {
         if (err) {
@@ -158,10 +158,10 @@ app.patch('/alarmes/:id/usuarios/adiciona', (req, res) => {
         } else {
             const usuariosAtuais = JSON.parse(row.usuarios_permitidos || '[]');
 
-            const cpfExistente = (novo) =>
+            const idsExistentes = (novo) =>
                 usuariosAtuais.some(u => u.cpf === novo.cpf);
 
-            const novosUsuarios = usuarios.filter(u => !cpfExistente(u));
+            const novosUsuarios = usuarios.filter(u => !idsExistentes(u));
 
             if (novosUsuarios.length === 0) {
                 return res.status(200).json({ message: 'Nenhum usuário novo foi adicionado.' });
@@ -201,11 +201,12 @@ app.patch('/alarmes/:id/usuarios/remove', (req, res) => {
             res.status(404).send('Alarme não encontrado.');
         } else {
             const usuariosAtuais = JSON.parse(row.usuarios_permitidos || '[]');
-            const cpfsParaRemover = usuarios.map(u => u.cpf);
+            const idsParaRemover = usuarios.map(u => u.id);
 
-            const atualizados = usuariosAtuais.filter(u => !cpfsParaRemover.includes(u.cpf));
+            const removidos = usuariosAtuais.filter(u => idsParaRemover.includes(u.id));
+            const atualizados = usuariosAtuais.filter(u => !idsParaRemover.includes(u.id));
 
-            if (atualizados.length === usuariosAtuais.length) {
+            if (removidos.length === 0) {
                 return res.status(200).json({ message: 'Nenhum usuário foi removido.' });
             }
 
